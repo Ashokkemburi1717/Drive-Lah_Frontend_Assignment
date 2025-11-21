@@ -1,38 +1,38 @@
 import React from "react";
 import { useDriveLahStore } from "../../store/driveLahStore";
-import { MapPin, Gauge, Lock, Key, CreditCard } from "lucide-react";
+import { MapPin, Gauge, Lock, CreditCard } from "lucide-react";
 import clsx from "clsx";
 
 const plans = [
   {
     id: "just-mates",
     name: "Just mates",
-    price: "Free",
     features: [
       { icon: MapPin, text: "Bring your own GPS" },
       { icon: Gauge, text: "Mileage reporting to be done by you" },
       { icon: Lock, text: "In-person key handover to guests" },
     ],
+    price: "Free",
   },
   {
     id: "good-mates",
     name: "Good mates",
-    price: "$10/month",
     features: [
       { icon: MapPin, text: "Primary GPS included" },
       { icon: Gauge, text: "Automated mileage calculations" },
       { icon: Lock, text: "In-person key handover to guests" },
     ],
+    price: "$10/month",
   },
   {
     id: "best-mates",
     name: "Best mates",
-    price: "$30/month",
     features: [
-      { icon: Key, text: "Keyless access technology" },
-      { icon: MapPin, text: "Primary GPS included" },
+      { icon: MapPin, text: "Keyless access technology" },
       { icon: Gauge, text: "Automated mileage calculations" },
+      { icon: Lock, text: "Remote handover to guests" },
     ],
+    price: "$30/month",
   },
 ];
 
@@ -64,11 +64,11 @@ export const SubscriptionForm: React.FC = () => {
   const { selectedPlan, setPlan, setStep, selectedAddons, toggleAddon } =
     useDriveLahStore();
 
-  // only compute visible addons if a plan is selected AND it has entries
-  const visibleAddonIds = selectedPlan ? planAddonsMap[selectedPlan] ?? [] : [];
+  const visibleAddonIds = selectedPlan
+    ? planAddonsMap[selectedPlan] ?? []
+    : [];
   const visibleAddons = allAddons.filter((a) => visibleAddonIds.includes(a.id));
 
-  // Helper: whether the current plan is the free plan
   const isFreePlan = selectedPlan === "just-mates";
 
   return (
@@ -81,7 +81,9 @@ export const SubscriptionForm: React.FC = () => {
       </div>
 
       {/* Plan Selection */}
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Select your plan</h3>
+      <h3 className="text-lg font-medium text-gray-900 mb-4">
+        Select your plan
+      </h3>
       <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-6 mb-8">
         {plans.map((plan) => (
           <div
@@ -95,25 +97,21 @@ export const SubscriptionForm: React.FC = () => {
               if (e.key === "Enter" || e.key === " ") setPlan(plan.id);
             }}
             className={clsx(
-              "relative rounded-lg border p-6 cursor-pointer transition-all duration-200 hover:shadow-md",
+              "relative rounded-lg border p-6 cursor-pointer transition-all duration-200 hover:shadow-md flex flex-col",
               selectedPlan === plan.id
                 ? "border-[#009CA6] bg-teal-50/30 ring-1 ring-[#009CA6]"
                 : "border-gray-200 hover:border-[#009CA6]/50"
             )}
           >
+            {/* Title */}
             <div className="mb-4">
-              <h4 className="text-lg font-semibold text-[#009CA6]">{plan.name}</h4>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-gray-900">
-                  {plan.price.split("/")[0]}
-                </span>
-                {plan.price.includes("/") && (
-                  <span className="text-sm text-gray-500">/{plan.price.split("/")[1]}</span>
-                )}
-              </div>
+              <h4 className="text-lg font-semibold text-[#009CA6]">
+                {plan.name}
+              </h4>
             </div>
 
-            <ul className="space-y-3">
+            {/* Features */}
+            <ul className="space-y-3 mb-6 flex-grow">
               {plan.features.map((feature, index) => (
                 <li key={index} className="flex items-start">
                   <feature.icon className="w-5 h-5 text-[#009CA6] flex-shrink-0 mr-3" />
@@ -121,68 +119,110 @@ export const SubscriptionForm: React.FC = () => {
                 </li>
               ))}
             </ul>
+
+            {/* Price */}
+            <div className="mt-auto">
+              <span
+                className="text-2xl font-extrabold"
+                style={{ color: "#016786" }}
+              >
+                {plan.price.split("/")[0]}
+              </span>
+              {plan.price.includes("/") && (
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: "#016786" }}
+                >
+                  /{plan.price.split("/")[1]}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Conditionally render Add-ons: only show when current plan has addons */}
+      {/* Add-ons Section */}
       {visibleAddons.length > 0 && (
         <div className="border-t border-gray-100 pt-8 mb-8">
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Select add-ons for your subscription
-          </h3>
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Select add-ons for your subscription
+            </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {visibleAddons.map((addon) => {
-              const isSelected = selectedAddons.includes(addon.id);
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4 pt-2">
+              {visibleAddons.map((addon) => {
+                const isSelected = selectedAddons.includes(addon.id);
+                const isComingSoon = addon.price === "Coming soon";
 
-              return (
-                <div
-                  key={addon.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleAddon(addon.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") toggleAddon(addon.id);
-                  }}
-                  className={clsx(
-                    "flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all bg-white shadow-sm",
-                    isSelected ? "border-[#01A2AD] ring-1 ring-[#01A2AD]" : "border-gray-200 hover:border-gray-300"
-                  )}
-                >
-                  <div>
-                    <p className="text-[#017A84] font-medium">
-                      {addon.name}{" "}
-                      {addon.price !== "Coming soon" ? (
-                        <span className="text-gray-600 font-normal"> - {addon.price}</span>
-                      ) : (
-                        <span className="text-gray-400 ml-2 text-xs">Coming soon</span>
-                      )}
-                    </p>
-                  </div>
-
+                return (
                   <div
+                    key={addon.id}
+                    role="button"
+                    tabIndex={0}
+                    // Disable click if it's "Coming soon" (optional, remove pointer-events-none if you want it clickable)
+                    onClick={() => !isComingSoon && toggleAddon(addon.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                         !isComingSoon && toggleAddon(addon.id);
+                    }}
                     className={clsx(
-                      "w-5 h-5 rounded-full border transition-all flex items-center justify-center",
-                      isSelected ? "border-[#01A2AD] bg-[#01A2AD]" : "border-[#01A2AD]"
+                      "relative flex items-center justify-between p-4 rounded-lg border transition-all bg-white shadow-sm",
+                      // If coming soon, maybe gray it out slightly or keep standard style?
+                      // Keeping standard style but adding the badge logic
+                      isSelected
+                        ? "border-[#01A2AD] ring-1 ring-[#01A2AD]"
+                        : "border-gray-200 hover:border-gray-300",
+                       // Add cursor pointer only if not coming soon
+                       isComingSoon ? "cursor-default opacity-80" : "cursor-pointer"
                     )}
-                    aria-hidden
                   >
-                    {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                    {/* Floating "Coming Soon" Badge */}
+                    {isComingSoon && (
+                      <span className="absolute -top-3 left-3 bg-gray-200 text-gray-600 text-[11px] font-semibold px-2 py-0.5 rounded">
+                        Coming soon
+                      </span>
+                    )}
+
+                    <div>
+                      <p className="text-[#017A84] font-medium">
+                        {addon.name}{" "}
+                        {/* Only show price if it's NOT coming soon */}
+                        {!isComingSoon && (
+                          <span className="text-gray-600 font-normal">
+                            {" "}
+                            - {addon.price}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div
+                      className={clsx(
+                        "w-5 h-5 rounded-full border transition-all flex items-center justify-center",
+                        isSelected
+                          ? "border-[#01A2AD] bg-[#01A2AD]"
+                          : "border-[#01A2AD]"
+                      )}
+                      aria-hidden
+                    >
+                      {isSelected && (
+                        <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         </div>
       )}
 
-      {/* Card Details: HIDE when free plan is selected */}
+      {/* Card Details */}
       {!isFreePlan && (
         <div className="border-t border-gray-100 pt-8 mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Add card details</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Add card details
+          </h3>
 
           <div className="relative w-full sm:w-96">
             <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -214,7 +254,8 @@ export const SubscriptionForm: React.FC = () => {
           </div>
 
           <p className="mt-2 text-xs text-gray-500">
-            You will not be charged right now. Subscription will only start once your listing is published and live.
+            You will not be charged right now. Subscription will only start once
+            your listing is published and live.
           </p>
         </div>
       )}
@@ -223,14 +264,21 @@ export const SubscriptionForm: React.FC = () => {
       <div className="border-t border-gray-100 pt-8 mb-8">
         <div className="bg-gray-100 rounded-md p-4 mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <p className="text-sm font-medium text-gray-800">Learn more about plans here</p>
-            <a href="#" className="text-sm font-medium" style={{ color: "#01A2AD" }}>
+            <p className="text-sm font-medium text-gray-800">
+              Learn more about plans here
+            </p>
+            <a
+              href="#"
+              className="text-sm font-medium"
+              style={{ color: "#01A2AD" }}
+            >
               What is the right plan for me?
             </a>
           </div>
 
           <p className="text-sm text-gray-600">
-            You will be able to switch between plans easily later as well. Speak to our host success team if you need any clarification.
+            You will be able to switch between plans easily later as well. Speak
+            to our host success team if you need any clarification.
           </p>
         </div>
       </div>
